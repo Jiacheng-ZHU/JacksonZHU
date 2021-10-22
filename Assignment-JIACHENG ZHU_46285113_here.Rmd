@@ -1,0 +1,158 @@
+---
+title: "STAT2170 46285113"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+```{r}
+setwd("C:/Users/11600/Desktop/STAT2170 Assignment")
+```
+Question 1 [40 marks]
+A paramo is a high altitude ecosystem above the forestline but below the snowline. A study was conducted in
+a chain of paramo ‘islands’ in the Andes of Venezuela, Colombia and Ecuador. Consider a regression model
+with abundance of bird species in paramo ‘islands’ as explained by the geography of the ‘islands.’ The data is
+available in the file paramo.dat on iLearn. Each row records the abundance of birds observed and geographic
+information for a single ‘island’ in the paramo chain. The variables are defined below.
+N Number of species of bird present
+AR Area of the island in square km
+EL Elevation in thousands of metres
+DEc Distance from Ecuador in kilometres
+DNI distance to the nearest other island in kilometre
+a. [6 marks] Produce a scatterplot and correlation matrix of the data and comment on possible relationships
+between the response and predictors and relationships between the predictors themselves.
+
+```{r}
+paramo<- read.table("paramo.dat", header=TRUE)
+summary(paramo)
+```
+```{r}
+pairs(paramo,panel=panel.smooth)
+```
+
+There is no evident linear relationship between the response variable N and predictors. The relationship between N and DEc is slightly negative and there is mildly positive relationship between N and AR. The rest of predictors almost not have apparent relationship with N.
+Among the predictors, there is slightly linear relationship between AR and EL, as well as DEc and DNI.
+
+```{r}
+cor(paramo)
+```
+The correlation matrix is the determinant of what we observed in the scatter plot matrix. For instance, the response variable N has no relationship with predictors whereas relationships exist among predictors.
+
+b. [14 marks] Fit a model using all the predictors to explain the N abundance number response. Conduct
+an F -test for the overall regression i.e. is there any relationship between the response and the predictors.
+In your answer:
+• Write down the mathematical multiple regression model for this situation, defining all appropriate
+parameters
+• Write down the Hypotheses for the Overall ANOVA test of multiple regression
+• Produce an ANOVA table for the overall multiple regression model (One combined regression SS
+source is sufficient)
+• Compute the F statistic for this test
+• State the Null distribution
+• Compute the P-Value
+• State your conclusion (both statistical conclusion and contextual conclusion)
+
+```{r}
+lm1=lm(N~., data=paramo)
+summary(lm1)
+```
+$$
+N=\beta_1+\beta_2AR+\beta_3EL+\beta_4DEc+\beta_5DNI\\
+
+\hat{Y}-\text{the response(fitted) variable N}\\
+X_i:\text{the predictors variables with}\\
+X_1=AR;\\
+X_2=EL;\\
+X_3=DE;\\
+X_4=DNI;\\
+
+\epsilon \sin N(0,\sigma^2)\text{denotes the random variation}
+$$
+The Hypotheses for the Overall ANOVA test of multiple regression:
+$$
+H_0: \beta_3= \beta_4= \beta_5 = 0;\\
+H_1: \text{at least one of them do not equal to 0}
+$$
+```{r}
+anova(lm1)
+```
+F-test
+
+```{r}
+1 - pf(6.086,4,9)
+```
+
+$$
+H_0: \beta_2= \beta_3= \beta_4= \beta_5=0\\
+H_1: \text{at least one of them do not equal to 0}\\
+\text{the Regression SS = 508.92+45.90+537.39+2.06=1094.27}\\
+\text{the Mean Square Reg = Reg SS/Reg df = 1094.27/4 = 273.5675}\\
+\text{Test statistic}: F:{obs} = MS_{Reg}/MS_{Reg} = 273.5675/44.95=6.086\\
+\text{P-value}: P(F_{4,95}\geq 6.086) = 1-pf(6.086,4,9) = 0.008322917 < 0.05;\\
+\text{As the P-value less than 0.05, hence we reject }H_0.\\
+\text{There is a significant linear relationship between N and at least 4 predictor variables}
+$$
+
+c. [9 marks] Validate the full model using all the predictors and comment on whether it is appropriate to
+a multiple regression model to explain the N abundance value.
+```{r}
+summary(lm1)
+```
+```{r}
+plot(lm1, which = 1:2)
+plot(resid(lm1) ~ AR, data = paramo, ylab = "Residuals"); abline(h=0)
+plot(resid(lm1) ~ EL, data = paramo, ylab = "Residuals"); abline(h=0)
+plot(resid(lm1) ~ DEc, data = paramo, ylab = "Residuals"); abline(h=0)
+plot(resid(lm1) ~ DNI, data = paramo, ylab = "Residuals"); abline(h=0)
+```
+From Residuals vs predictor plots, there is no pattern found hence the regression analysis is valid.
+From the quantile plot, residuals look linear hence the normal assumption for residuals is appropriate.
+From Residuals vs Fitted plot, it demonstrates that the size of the residuals increases as which of fitted values increases, hence the constant variance assumption is inappropriate.
+
+
+d. [2 marks] Find the R 2 and comment on what it means in the context of this dataset.
+```{r}
+summary(lm1)$r.squared
+```
+$$
+R^2 = \frac{S.S._{Regression}}{S.S._{Total}} =
+\frac{S.S._{Total} - S.S._{Residuals}}{S.S._{Total}} = 0.730068
+$$
+R-square means the goodness of fit measure for linear regression models. It represents the proportion of the variance for the dependent variable which is explained by an independent variable or variables in a regression model.
+
+
+e. [3 marks] Using model selection procedures used in the course, find the best multiple regression model
+that explains the data. State the final fitted regression model.
+
+```{r}
+step(lm1, direction = "backward")
+```
+
+$$
+\text{The most appropriate model is: N = 30.79797 + 6.68304AR - 0.01706DEc}
+$$
+```{r}
+lm2 = lm(formula = N ~ AR + DEc, data = paramo)
+summary(lm2)
+```
+
+f. [2 marks] Comment on the R 2 and Adjusted R 2 in the full and final model you chose in part e. In
+particular explain why those goodness of fitness measures change but not in the same way.
+
+```{r}
+summary(lm2)$r.squared
+```
+R-square remains the same or increases if there are additional input variables. In the regression 1, both R-squares are nearly the same after dropping 2 variables hence the input variable of temperature is not involved to explain the output variable. The adjusted model is more fit.
+
+
+g. [4 marks] Compute a 95% confidence interval for the AR regression parameter and explain what it means
+in the context of this data.
+
+```{r}
+confint(lm2, "AR", level = 0.95)
+```
+We are 95% confident that the regression parameter of AR coefficients is between 1.699121 and 11.66696.
